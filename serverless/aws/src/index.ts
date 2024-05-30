@@ -16,6 +16,7 @@ import { pmtiles_path, tileJSON, tile_path } from "../../shared/index";
 
 import { createHash } from "crypto";
 import zlib from "zlib";
+import { Agent } from "http";
 
 import {
   GetObjectCommand,
@@ -24,11 +25,18 @@ import {
 } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 
+const MAX_SOCKETS = process.env.NODE_HTTP_MAX_SOCKETS === "Infinity" 
+  ? Infinity 
+  : parseInt(process.env.NODE_HTTP_MAX_SOCKETS || "50", 10);
+
 // the region should default to the same one as the function
 const s3client = new S3Client({
   requestHandler: new NodeHttpHandler({
     connectionTimeout: 500,
     socketTimeout: 500,
+    httpAgent: new Agent({
+      maxSockets:  MAX_SOCKETS,
+    }),
   }),
 });
 
